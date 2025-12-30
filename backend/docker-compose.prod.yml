@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Redis (Celery 브로커)
+  redis:
+    image: redis:7-alpine
+    container_name: about-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - about-network
+
+  # Django 애플리케이션
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: about-web
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "80:8000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - about-network
+
+  # Celery Worker
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: about-celery
+    command: celery -A config worker -l info
+    volumes:
+      - .:/app
+      - media_volume:/app/media
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - about-network
+
+  # Celery Beat (스케줄러)
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: about-celery-beat
+    command: celery -A config beat -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - about-network
+
+  # Flower (Celery 모니터링)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: about-flower
+    command: celery -A config flower --port=5555
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - celery
+    networks:
+      - about-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+
+networks:
+  about-network:
+    driver: bridge
