@@ -1,19 +1,19 @@
 from .base import *
 
-DEBUG = False
+DEBUG = True
 
 # Security Settings
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
 # HSTS Settings
-SECURE_HSTS_SECONDS = 31536000  # 1년
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+SECURE_HSTS_SECONDS = 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
 
 # S3 사용
 USE_S3 = True
@@ -29,3 +29,7 @@ if env('SENTRY_DSN', default=None):
         traces_sample_rate=0.1,
         send_default_pii=True
     )
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://13.53.39.217",
+]
