@@ -208,6 +208,9 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'About Consulting API',
     'DESCRIPTION': 'About Consulting Backend API Documentation',
     'VERSION': '1.0.0',
+    "SERVERS": [
+        {"url": "http://13.53.39.217/api/v1", "description": "prod"},
+    ],
     'SERVE_INCLUDE_SCHEMA': False,
     'SCHEMA_PATH_PREFIX': r'/api/v[0-9]',
     'SCHEMA_PATH_PREFIX_TRIM': True,
