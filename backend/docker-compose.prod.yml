@@ -23,6 +23,7 @@ services:
              python manage.py collectstatic --noinput &&
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     volumes:
+      - ./logs:/app/logs
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
