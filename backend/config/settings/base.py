@@ -121,6 +121,15 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+# drf-spectacular Settings
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'About-Consulting API',
+    'DESCRIPTION': '입시 컨설팅 관리 플랫폼 API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+}
+
 # JWT Settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(seconds=env.int('JWT_ACCESS_TOKEN_LIFETIME', 900)),
@@ -200,4 +209,6 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'About Consulting Backend API Documentation',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': r'/api/v[0-9]',
+    'SCHEMA_PATH_PREFIX_TRIM': True,
 }
