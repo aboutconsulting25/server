@@ -12,6 +12,7 @@ from .serializers import (
     SubjectGradeSerializer
 )
 from .utils import convert_9_to_5, convert_5_to_9
+from .university_converters import GachonConverter, UniversityConverter
 
 
 @extend_schema_view(
@@ -25,6 +26,8 @@ from .utils import convert_9_to_5, convert_5_to_9
     add_subject_grade=extend_schema(tags=['Grades']),
     convert_grade=extend_schema(tags=['Grades']),
     student_grade_summary=extend_schema(tags=['Grades']),
+    convert_for_university=extend_schema(tags=['Grades']),
+    calculate_gachon_gpa=extend_schema(tags=['Grades']),
 )
 class GradeViewSet(viewsets.ModelViewSet):
     """성적 ViewSet"""
@@ -175,6 +178,176 @@ class GradeViewSet(viewsets.ModelViewSet):
                 }
             }
         })
+
+    @action(detail=False, methods=['post'], url_path='convert-for-university')
+    def convert_for_university(self, request):
+        """
+        대학별 특수 등급 변환
+
+        POST /api/grades/convert-for-university/
+        {
+            "university": "gachon",
+            "grade": 2,
+            "major_type": "science"
+        }
+
+        Response:
+        {
+            "success": true,
+            "data": {
+                "university": "gachon",
+                "original_grade": 2,
+                "major_type": "science",
+                "converted_grade": "B",
+                "score": 99.5
+            }
+        }
+        """
+        university = request.data.get('university', '').lower()
+        grade = request.data.get('grade')
+        major_type = request.data.get('major_type', 'humanities')
+
+        # 입력 검증
+        if not university:
+            return Response({
+                'success': False,
+                'error': 'university parameter is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if grade is None:
+            return Response({
+                'success': False,
+                'error': 'grade parameter is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            grade = int(grade)
+        except (ValueError, TypeError):
+            return Response({
+                'success': False,
+                'error': 'grade must be a valid integer (1-9)'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if major_type not in ['humanities', 'science', 'medical']:
+            return Response({
+                'success': False,
+                'error': 'major_type must be one of: humanities, science, medical'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            result = UniversityConverter.convert(
+                university,
+                grade,
+                major_type
+            )
+
+            response_data = {
+                'university': university,
+                'original_grade': grade,
+                'major_type': major_type,
+            }
+
+            # 결과 타입에 따라 응답 구성
+            if isinstance(result, dict):
+                response_data.update(result)
+            elif isinstance(result, str):
+                response_data['converted_grade'] = result
+            else:
+                response_data['score'] = result
+
+            return Response({
+                'success': True,
+                'data': response_data
+            })
+
+        except ValueError as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], url_path='calculate-gachon-gpa')
+    def calculate_gachon_gpa(self, request):
+        """
+        가천대 방식 환산 평균 계산
+
+        POST /api/grades/calculate-gachon-gpa/
+        {
+            "grades": [
+                {"grade": 2, "credit": 3, "year": 2},
+                {"grade": 3, "credit": 4, "year": 2}
+            ],
+            "major_type": "science"
+        }
+
+        Response:
+        {
+            "success": true,
+            "data": {
+                "gpa": 99.5,
+                "major_type": "science",
+                "total_credits": 7,
+                "grade_count": 2
+            }
+        }
+        """
+        grades = request.data.get('grades', [])
+        major_type = request.data.get('major_type', 'humanities')
+
+        # 입력 검증
+        if not grades:
+            return Response({
+                'success': False,
+                'error': 'grades parameter is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if not isinstance(grades, list):
+            return Response({
+                'success': False,
+                'error': 'grades must be a list'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if major_type not in ['humanities', 'science', 'medical']:
+            return Response({
+                'success': False,
+                'error': 'major_type must be one of: humanities, science, medical'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # 각 항목 검증
+        for idx, grade_item in enumerate(grades):
+            if not isinstance(grade_item, dict):
+                return Response({
+                    'success': False,
+                    'error': f'grades[{idx}] must be an object'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            required_fields = ['grade', 'credit', 'year']
+            for field in required_fields:
+                if field not in grade_item:
+                    return Response({
+                        'success': False,
+                        'error': f'grades[{idx}] missing required field: {field}'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            gpa = GachonConverter.calculate_gpa(grades, major_type)
+            total_credits = sum(g['credit'] for g in grades if g['year'] > 1)
+
+            return Response({
+                'success': True,
+                'data': {
+                    'gpa': gpa,
+                    'major_type': major_type,
+                    'total_credits': total_credits,
+                    'grade_count': len([g for g in grades if g['year'] > 1])
+                }
+            })
+
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema_view(
