@@ -6,13 +6,8 @@ from django.conf import settings
 class Document(models.Model):
     """서류 관리"""
     DOCUMENT_TYPE_CHOICES = (
-        ('TRANSCRIPT', '생활기록부'),
-        ('REPORT', '성적표'),
-        ('RECOMMENDATION', '추천서'),
-        ('ESSAY', '자기소개서'),
-        ('PORTFOLIO', '포트폴리오'),
-        ('CERTIFICATE', '수상/자격증'),
-        ('OTHER', '기타'),
+        ('생기부', '생활기록부'),
+        ('모의고사', '모의고사 성적표'),
     )
 
     STATUS_CHOICES = (
@@ -30,9 +25,10 @@ class Document(models.Model):
         verbose_name='학생'
     )
     document_type = models.CharField(
-        max_length=50,
+        max_length=20,
         choices=DOCUMENT_TYPE_CHOICES,
-        verbose_name='서류 유형'
+        default='생기부',
+        verbose_name='문서 타입'
     )
     title = models.CharField(max_length=200, verbose_name='제목')
     file = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name='파일')
