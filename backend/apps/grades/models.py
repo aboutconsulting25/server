@@ -80,6 +80,30 @@ class Grade(models.Model):
     )
 
     notes = models.TextField(blank=True, verbose_name='메모')
+
+    # 버전 관리
+    version = models.IntegerField(
+        default=1,
+        verbose_name='버전'
+    )
+    is_latest = models.BooleanField(
+        default=True,
+        verbose_name='최신 버전 여부'
+    )
+    correction_reason = models.TextField(
+        blank=True,
+        verbose_name='정정 사유',
+        help_text='성적 정정 시 사유 입력'
+    )
+    corrected_by = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='corrected_grades',
+        verbose_name='정정한 사용자'
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -87,11 +111,41 @@ class Grade(models.Model):
         db_table = 'grades'
         verbose_name = '성적'
         verbose_name_plural = '성적'
-        ordering = ['semester', 'exam_type']
-        unique_together = [['student', 'semester', 'exam_type']]
+        ordering = ['-created_at']
+        unique_together = [['student', 'semester', 'exam_type', 'version']]
+        indexes = [
+            models.Index(fields=['student', 'semester']),
+            models.Index(fields=['student', 'exam_type']),
+            models.Index(fields=['student', 'is_latest']),
+            models.Index(fields=['is_latest']),
+        ]
 
     def __str__(self):
         return f"{self.student.name} - {self.get_semester_display()} - {self.get_exam_type_display()}"
+
+    def save(self, *args, **kwargs):
+        """저장 시 자동 버전 관리"""
+        if not self.pk:  # 새로 생성되는 경우
+            # 같은 학생/학기/시험의 기존 성적을 is_latest=False로
+            if self.is_latest:
+                Grade.objects.filter(
+                    student=self.student,
+                    semester=self.semester,
+                    exam_type=self.exam_type,
+                    is_latest=True
+                ).update(is_latest=False)
+
+            # 마지막 버전 번호 +1
+            last_grade = Grade.objects.filter(
+                student=self.student,
+                semester=self.semester,
+                exam_type=self.exam_type
+            ).order_by('-version').first()
+
+            if last_grade:
+                self.version = last_grade.version + 1
+
+        super().save(*args, **kwargs)
 
     @property
     def average_grade(self):
