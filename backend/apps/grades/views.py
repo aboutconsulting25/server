@@ -11,6 +11,7 @@ from .serializers import (
     GradeCreateSerializer,
     SubjectGradeSerializer
 )
+from .utils import convert_9_to_5, convert_5_to_9
 
 
 @extend_schema_view(
@@ -20,7 +21,10 @@ from .serializers import (
     update=extend_schema(tags=['Grades']),
     partial_update=extend_schema(tags=['Grades']),
     destroy=extend_schema(tags=['Grades']),
-    subjects=extend_schema(tags=['Grades']),
+    subject_grades=extend_schema(tags=['Grades']),
+    add_subject_grade=extend_schema(tags=['Grades']),
+    convert_grade=extend_schema(tags=['Grades']),
+    student_grade_summary=extend_schema(tags=['Grades']),
 )
 class GradeViewSet(viewsets.ModelViewSet):
     """성적 ViewSet"""
@@ -68,6 +72,80 @@ class GradeViewSet(viewsets.ModelViewSet):
             'success': False,
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'])
+    def convert_grade(self, request):
+        """등급 변환 API (9등급제 ↔ 5등급제)
+
+        Parameters:
+            - grade (float): 변환할 등급
+            - from_system (str): 원본 등급 시스템 ('9' or '5')
+            - to_system (str): 대상 등급 시스템 ('9' or '5')
+
+        Returns:
+            - converted_grade (float): 변환된 등급
+            - original_grade (float): 원본 등급
+            - from_system (str): 원본 시스템
+            - to_system (str): 대상 시스템
+        """
+        grade = request.data.get('grade')
+        from_system = request.data.get('from_system', '9')
+        to_system = request.data.get('to_system', '5')
+
+        # 입력 검증
+        if grade is None:
+            return Response({
+                'success': False,
+                'error': 'grade parameter is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            grade = float(grade)
+        except (ValueError, TypeError):
+            return Response({
+                'success': False,
+                'error': 'grade must be a valid number'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if from_system not in ['9', '5'] or to_system not in ['9', '5']:
+            return Response({
+                'success': False,
+                'error': 'from_system and to_system must be either "9" or "5"'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # 같은 시스템 간 변환은 그대로 반환
+        if from_system == to_system:
+            return Response({
+                'success': True,
+                'data': {
+                    'original_grade': grade,
+                    'converted_grade': grade,
+                    'from_system': from_system,
+                    'to_system': to_system
+                }
+            })
+
+        # 등급 변환
+        try:
+            if from_system == '9' and to_system == '5':
+                converted = convert_9_to_5(grade)
+            else:  # from_system == '5' and to_system == '9'
+                converted = convert_5_to_9(grade)
+
+            return Response({
+                'success': True,
+                'data': {
+                    'original_grade': grade,
+                    'converted_grade': converted,
+                    'from_system': from_system,
+                    'to_system': to_system
+                }
+            })
+        except ValueError as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def student_grade_summary(self, request):

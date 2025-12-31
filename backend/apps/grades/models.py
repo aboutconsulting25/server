@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from decimal import Decimal
+from .utils import convert_9_to_5, convert_5_to_9
 
 
 class Grade(models.Model):
@@ -162,6 +163,79 @@ class Grade(models.Model):
         if valid_grades:
             return sum(valid_grades) / len(valid_grades)
         return None
+
+    # 등급 변환 프로퍼티 (9등급제 ↔ 5등급제)
+    @property
+    def korean_grade_5(self):
+        """국어 등급을 5등급제로 변환"""
+        if self.korean_grade:
+            return convert_9_to_5(float(self.korean_grade))
+        return None
+
+    @property
+    def korean_grade_9(self):
+        """국어 등급 (9등급제)"""
+        return float(self.korean_grade) if self.korean_grade else None
+
+    @property
+    def math_grade_5(self):
+        """수학 등급을 5등급제로 변환"""
+        if self.math_grade:
+            return convert_9_to_5(float(self.math_grade))
+        return None
+
+    @property
+    def math_grade_9(self):
+        """수학 등급 (9등급제)"""
+        return float(self.math_grade) if self.math_grade else None
+
+    @property
+    def english_grade_5(self):
+        """영어 등급을 5등급제로 변환"""
+        if self.english_grade:
+            return convert_9_to_5(float(self.english_grade))
+        return None
+
+    @property
+    def english_grade_9(self):
+        """영어 등급 (9등급제)"""
+        return float(self.english_grade) if self.english_grade else None
+
+    @property
+    def science1_grade_5(self):
+        """과학1 등급을 5등급제로 변환"""
+        if self.science1_grade:
+            return convert_9_to_5(float(self.science1_grade))
+        return None
+
+    @property
+    def science1_grade_9(self):
+        """과학1 등급 (9등급제)"""
+        return float(self.science1_grade) if self.science1_grade else None
+
+    @property
+    def science2_grade_5(self):
+        """과학2 등급을 5등급제로 변환"""
+        if self.science2_grade:
+            return convert_9_to_5(float(self.science2_grade))
+        return None
+
+    @property
+    def science2_grade_9(self):
+        """과학2 등급 (9등급제)"""
+        return float(self.science2_grade) if self.science2_grade else None
+
+    @property
+    def history_grade_5(self):
+        """한국사 등급을 5등급제로 변환"""
+        if self.history_grade:
+            return convert_9_to_5(float(self.history_grade))
+        return None
+
+    @property
+    def history_grade_9(self):
+        """한국사 등급 (9등급제)"""
+        return float(self.history_grade) if self.history_grade else None
 
 
 class SubjectGrade(models.Model):

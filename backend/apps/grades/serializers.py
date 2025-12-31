@@ -28,6 +28,20 @@ class GradeSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    # 등급 변환 필드 (9등급제 ↔ 5등급제)
+    korean_grade_5 = serializers.FloatField(read_only=True)
+    korean_grade_9 = serializers.FloatField(read_only=True)
+    math_grade_5 = serializers.FloatField(read_only=True)
+    math_grade_9 = serializers.FloatField(read_only=True)
+    english_grade_5 = serializers.FloatField(read_only=True)
+    english_grade_9 = serializers.FloatField(read_only=True)
+    science1_grade_5 = serializers.FloatField(read_only=True)
+    science1_grade_9 = serializers.FloatField(read_only=True)
+    science2_grade_5 = serializers.FloatField(read_only=True)
+    science2_grade_9 = serializers.FloatField(read_only=True)
+    history_grade_5 = serializers.FloatField(read_only=True)
+    history_grade_9 = serializers.FloatField(read_only=True)
+
     class Meta:
         model = Grade
         fields = [
@@ -36,6 +50,12 @@ class GradeSerializer(serializers.ModelSerializer):
             'english_score', 'english_grade', 'science1_score', 'science1_grade',
             'science2_score', 'science2_grade', 'history_score', 'history_grade',
             'total_score', 'percentile', 'average_grade_calculated',
+            'korean_grade_5', 'korean_grade_9',
+            'math_grade_5', 'math_grade_9',
+            'english_grade_5', 'english_grade_9',
+            'science1_grade_5', 'science1_grade_9',
+            'science2_grade_5', 'science2_grade_9',
+            'history_grade_5', 'history_grade_9',
             'subject_grades', 'notes', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
