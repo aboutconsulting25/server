@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from django.utils import timezone
 from django.db import transaction
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample, inline_serializer
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
 
 from apps.students.models import Student
 from apps.documents.models import Document, DocumentAnalysis
@@ -21,6 +21,33 @@ from apps.reports.ai_module import (
     get_mock_grade_analysis,
     get_mock_comprehensive_analysis
 )
+
+
+# MVP 등록용 Serializer
+class RegisterSaenggibuSerializer(serializers.Serializer):
+    """생기부 등록 요청 Serializer"""
+    name = serializers.CharField(
+        required=True,
+        help_text='학생 이름'
+    )
+    major_track = serializers.ChoiceField(
+        required=True,
+        choices=['HUMANITIES', 'SCIENCE', 'ART'],
+        help_text='계열 (HUMANITIES: 인문계, SCIENCE: 자연계, ART: 예체능)'
+    )
+    desired_universities = serializers.CharField(
+        required=True,
+        help_text='희망 대학/학과 JSON 배열 (예: [{"university":"서울대","department":"컴공"},{"university":"연대","department":"전전"}])'
+    )
+    file = serializers.FileField(
+        required=True,
+        help_text='생기부 PDF 파일'
+    )
+    use_mock = serializers.BooleanField(
+        required=False,
+        default=True,
+        help_text='목업 데이터 사용 여부 (기본값: true, AI 모듈 연결 시 false)'
+    )
 
 
 @extend_schema(
@@ -47,25 +74,7 @@ from apps.reports.ai_module import (
     - GET /api/v1/grades/student-grade-analysis/?student_id={student_id} → 성적 분석 조회
     - GET /api/v1/reports/{report_id}/comprehensive-analysis/ → 종합 분석 조회
     ''',
-    request=inline_serializer(
-        name='RegisterSaenggibuRequest',
-        fields={
-            'name': serializers.CharField(help_text='학생 이름'),
-            'major_track': serializers.ChoiceField(
-                choices=['HUMANITIES', 'SCIENCE', 'ART'],
-                help_text='계열 (HUMANITIES: 인문계, SCIENCE: 자연계, ART: 예체능)'
-            ),
-            'desired_universities': serializers.CharField(
-                help_text='희망 대학/학과 JSON 배열 (예: [{"university":"서울대","department":"컴공"},{"university":"연대","department":"전전"}])'
-            ),
-            'file': serializers.FileField(help_text='생기부 PDF 파일'),
-            'use_mock': serializers.BooleanField(
-                required=False,
-                default=True,
-                help_text='목업 데이터 사용 여부 (기본값: true, AI 모듈 연결 시 false)'
-            ),
-        }
-    ),
+    request=RegisterSaenggibuSerializer,
     examples=[
         OpenApiExample(
             'Success Response',
