@@ -8,9 +8,10 @@ from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
+from rest_framework import serializers
 from django.utils import timezone
 from django.db import transaction
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample, inline_serializer
 
 from apps.students.models import Student
 from apps.documents.models import Document, DocumentAnalysis
@@ -46,45 +47,25 @@ from apps.reports.ai_module import (
     - GET /api/v1/grades/student-grade-analysis/?student_id={student_id} → 성적 분석 조회
     - GET /api/v1/reports/{report_id}/comprehensive-analysis/ → 종합 분석 조회
     ''',
-    parameters=[
-        OpenApiParameter(
-            name='name',
-            type=OpenApiTypes.STR,
-            location=OpenApiParameter.QUERY,
-            required=True,
-            description='학생 이름'
-        ),
-        OpenApiParameter(
-            name='major_track',
-            type=OpenApiTypes.STR,
-            location=OpenApiParameter.QUERY,
-            required=True,
-            description='계열 (HUMANITIES: 인문계, SCIENCE: 자연계, ART: 예체능)',
-            enum=['HUMANITIES', 'SCIENCE', 'ART']
-        ),
-        OpenApiParameter(
-            name='desired_universities',
-            type=OpenApiTypes.STR,
-            location=OpenApiParameter.QUERY,
-            required=True,
-            description='희망 대학/학과 JSON 배열 (예: [{"university":"서울대","department":"컴공"},{"university":"연대","department":"전전"}])'
-        ),
-        OpenApiParameter(
-            name='file',
-            type=OpenApiTypes.BINARY,
-            location=OpenApiParameter.QUERY,
-            required=True,
-            description='생기부 PDF 파일'
-        ),
-        OpenApiParameter(
-            name='use_mock',
-            type=OpenApiTypes.BOOL,
-            location=OpenApiParameter.QUERY,
-            required=False,
-            description='목업 데이터 사용 여부 (기본값: true, AI 모듈 연결 시 false)',
-            default=True
-        ),
-    ],
+    request=inline_serializer(
+        name='RegisterSaenggibuRequest',
+        fields={
+            'name': serializers.CharField(help_text='학생 이름'),
+            'major_track': serializers.ChoiceField(
+                choices=['HUMANITIES', 'SCIENCE', 'ART'],
+                help_text='계열 (HUMANITIES: 인문계, SCIENCE: 자연계, ART: 예체능)'
+            ),
+            'desired_universities': serializers.CharField(
+                help_text='희망 대학/학과 JSON 배열 (예: [{"university":"서울대","department":"컴공"},{"university":"연대","department":"전전"}])'
+            ),
+            'file': serializers.FileField(help_text='생기부 PDF 파일'),
+            'use_mock': serializers.BooleanField(
+                required=False,
+                default=True,
+                help_text='목업 데이터 사용 여부 (기본값: true, AI 모듈 연결 시 false)'
+            ),
+        }
+    ),
     examples=[
         OpenApiExample(
             'Success Response',
