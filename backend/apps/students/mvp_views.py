@@ -25,26 +25,32 @@ from apps.reports.ai_module import (
 
 # MVP 등록용 Serializer
 class RegisterSaenggibuSerializer(serializers.Serializer):
-    """생기부 등록 요청 Serializer"""
+    """생기부 등록 요청 Serializer (multipart/form-data)"""
     name = serializers.CharField(
         required=True,
+        write_only=True,
         help_text='학생 이름'
     )
     major_track = serializers.ChoiceField(
         required=True,
+        write_only=True,
         choices=['HUMANITIES', 'SCIENCE', 'ART'],
         help_text='계열 (HUMANITIES: 인문계, SCIENCE: 자연계, ART: 예체능)'
     )
     desired_universities = serializers.CharField(
         required=True,
+        write_only=True,
         help_text='희망 대학/학과 JSON 배열 (예: [{"university":"서울대","department":"컴공"},{"university":"연대","department":"전전"}])'
     )
     file = serializers.FileField(
         required=True,
+        write_only=True,
+        use_url=False,
         help_text='생기부 PDF 파일'
     )
     use_mock = serializers.BooleanField(
         required=False,
+        write_only=True,
         default=True,
         help_text='목업 데이터 사용 여부 (기본값: true, AI 모듈 연결 시 false)'
     )
