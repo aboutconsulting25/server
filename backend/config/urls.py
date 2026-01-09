@@ -7,6 +7,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from apps.students.mvp_views import register_saenggibu_onestop
 
 urlpatterns = [
     # Admin
@@ -16,6 +17,9 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    # MVP 원포인트 API
+    path('api/v1/mvp/register-saenggibu/', register_saenggibu_onestop, name='mvp-register-saenggibu'),
 
     # API v1
     # 로그인 API 비활성화 (MVP용) - 추후 재활성화 예정

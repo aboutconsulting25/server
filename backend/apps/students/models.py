@@ -18,6 +18,12 @@ class Student(models.Model):
         ('GRADUATED', '졸업생'),
     )
 
+    MAJOR_TRACK_CHOICES = (
+        ('HUMANITIES', '인문계'),
+        ('SCIENCE', '자연계'),
+        ('ART', '예체능'),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, verbose_name='이름')
     student_code = models.CharField(max_length=50, unique=True, verbose_name='학생 코드')
@@ -30,6 +36,31 @@ class Student(models.Model):
         verbose_name='고등학교'
     )
     grade = models.CharField(max_length=20, choices=GRADE_CHOICES, verbose_name='학년')
+
+    # MVP: 계열 추가
+    major_track = models.CharField(
+        max_length=20,
+        choices=MAJOR_TRACK_CHOICES,
+        blank=True,
+        verbose_name='계열',
+        help_text='인문계/자연계/예체능'
+    )
+
+    # MVP: 희망 대학/학과 (텍스트 입력, 추후 FK로 전환 예정)
+    desired_universities_text = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name='희망 대학 목록 (임시)',
+        help_text='''
+        [
+            {"university": "서울대학교", "department": "컴퓨터공학과"},
+            {"university": "연세대학교", "department": "전기전자공학과"},
+            ...
+        ]
+        추후 University/Department 모델과 FK 연결 예정
+        '''
+    )
+
     phone = models.CharField(max_length=20, blank=True, verbose_name='연락처')
     parent_phone = models.CharField(max_length=20, blank=True, verbose_name='학부모 연락처')
 

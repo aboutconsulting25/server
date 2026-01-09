@@ -136,6 +136,107 @@ class ConsultationReportViewSet(viewsets.ModelViewSet):
             }
         })
 
+    @action(detail=True, methods=['patch'], url_path='update-grade-analysis')
+    @extend_schema(
+        tags=['Reports'],
+        summary='성적 분석 결과 수정 (컨설턴트용)',
+        description='컨설턴트가 성적 분석 결과를 검토 후 수정'
+    )
+    def update_grade_analysis(self, request, pk=None):
+        """
+        성적 분석 결과 수정
+
+        PATCH /api/v1/reports/{report_id}/update-grade-analysis/
+        """
+        report = self.get_object()
+
+        updated_data = request.data.get('성적분석', {})
+        if not updated_data:
+            return Response({
+                'success': False,
+                'error': '성적분석 필드가 필요합니다.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Deep merge
+        from copy import deepcopy
+
+        def deep_update(source, updates):
+            for key, value in updates.items():
+                if isinstance(value, dict) and key in source and isinstance(source[key], dict):
+                    deep_update(source[key], value)
+                else:
+                    source[key] = value
+
+        current_insights = deepcopy(report.ai_insights)
+        if '성적분석' not in current_insights:
+            current_insights['성적분석'] = {}
+
+        deep_update(current_insights['성적분석'], updated_data)
+        report.ai_insights = current_insights
+        report.save()
+
+        return Response({
+            'success': True,
+            'message': '성적 분석이 수정되었습니다.',
+            'data': {
+                'report_id': str(report.id),
+                'updated_fields': list(updated_data.keys())
+            }
+        })
+
+    @action(detail=True, methods=['patch'], url_path='update-comprehensive-analysis')
+    @extend_schema(
+        tags=['Reports'],
+        summary='종합 분석 결과 수정 (컨설턴트용)',
+        description='컨설턴트가 종합 분석 결과를 검토 후 수정'
+    )
+    def update_comprehensive_analysis(self, request, pk=None):
+        """
+        종합 분석 결과 수정
+
+        PATCH /api/v1/reports/{report_id}/update-comprehensive-analysis/
+        """
+        report = self.get_object()
+
+        updated_data = request.data.get('종합분석', {})
+        if not updated_data:
+            return Response({
+                'success': False,
+                'error': '종합분석 필드가 필요합니다.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Deep merge
+        from copy import deepcopy
+
+        def deep_update(source, updates):
+            for key, value in updates.items():
+                if isinstance(value, dict) and key in source and isinstance(source[key], dict):
+                    deep_update(source[key], value)
+                else:
+                    source[key] = value
+
+        current_insights = deepcopy(report.ai_insights)
+        if '종합분석' not in current_insights:
+            current_insights['종합분석'] = {}
+
+        deep_update(current_insights['종합분석'], updated_data)
+
+        # 수시카드가 업데이트되었으면 university_analysis도 업데이트
+        if '수시카드' in updated_data:
+            report.university_analysis = updated_data['수시카드']
+
+        report.ai_insights = current_insights
+        report.save()
+
+        return Response({
+            'success': True,
+            'message': '종합 분석이 수정되었습니다.',
+            'data': {
+                'report_id': str(report.id),
+                'updated_fields': list(updated_data.keys())
+            }
+        })
+
     @action(detail=True, methods=['post'], url_path='generate-mock-analysis')
     @extend_schema(
         tags=['Reports'],
