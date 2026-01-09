@@ -18,7 +18,8 @@ urlpatterns = [
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
     # API v1
-    path('api/v1/auth/', include('apps.accounts.urls')),
+    # 로그인 API 비활성화 (MVP용) - 추후 재활성화 예정
+    # path('api/v1/auth/', include('apps.accounts.urls')),
     path('api/v1/students/', include('apps.students.urls')),
     path('api/v1/consultants/', include('apps.consultants.urls')),
     path('api/v1/documents/', include('apps.documents.urls')),
