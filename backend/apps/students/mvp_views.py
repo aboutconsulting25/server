@@ -17,7 +17,7 @@ from apps.students.models import Student
 from apps.documents.models import Document, DocumentAnalysis
 from apps.reports.models import ConsultationReport
 from apps.reports.ai_module import (
-    get_mock_saenggibu_analysis,
+    analyze_document_with_ai,
     get_mock_grade_analysis,
     get_mock_comprehensive_analysis
 )
@@ -109,6 +109,21 @@ def register_saenggibu_onestop(request):
             'error': 'name, major_track, desired_universities, file are required'
         }, status=status.HTTP_400_BAD_REQUEST)
 
+    # PDF 파일 검증
+    if file.content_type not in ['application/pdf']:
+        return Response({
+            'success': False,
+            'error': 'PDF 파일만 업로드 가능합니다.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    # 파일 크기 검증 (50MB 제한)
+    max_size = 50 * 1024 * 1024  # 50MB
+    if file.size > max_size:
+        return Response({
+            'success': False,
+            'error': 'PDF 파일 크기는 50MB를 초과할 수 없습니다.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     # desired_universities JSON 파싱
     import json
     try:
@@ -135,26 +150,22 @@ def register_saenggibu_onestop(request):
                 status='ACTIVE'
             )
 
-            # 2-2. 생기부 문서 업로드
+            # 2-2. 생기부 문서 메타데이터 생성 (S3 연결 전까지는 파일 저장 안 함)
+            # PDF 파일은 AI 모듈로만 전달하고, 메타데이터만 DB에 저장
             document = Document.objects.create(
                 student=student,
                 document_type='생기부',
                 title=f"{name} 생활기록부",
-                file=file,
+                # file=None  # S3 연결 전까지는 파일 저장하지 않음
                 file_size=file.size,
                 mime_type=file.content_type,
                 status='PROCESSING'
             )
 
-            # 2-3. AI 분석 실행
-            if use_mock:
-                # 목업 데이터 사용
-                saenggibu_analysis = get_mock_saenggibu_analysis()
-            else:
-                # TODO: 실제 AI 모듈 호출
-                # from apps.reports.ai_module import analyze_document_with_ai
-                # saenggibu_analysis = analyze_document_with_ai(str(document.id))
-                saenggibu_analysis = get_mock_saenggibu_analysis()
+            # 2-3. AI 분석 실행 (PDF 파일을 AI 모듈로 전달)
+            # PDF 파일을 메모리에서 AI 모듈로 직접 전달 (OCR + 분석)
+            # use_mock과 관계없이 항상 PDF 파일을 전달 (AI 모듈에서 처리 여부 결정)
+            saenggibu_analysis = analyze_document_with_ai(file)
 
             # DocumentAnalysis 생성
             analysis = DocumentAnalysis.objects.create(

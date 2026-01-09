@@ -31,7 +31,9 @@ class Document(models.Model):
         verbose_name='문서 타입'
     )
     title = models.CharField(max_length=200, verbose_name='제목')
-    file = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name='파일')
+    # S3 연결 전까지는 파일을 실제로 저장하지 않음 (null=True, blank=True)
+    # AI 모듈로 PDF 전달 후 분석만 수행
+    file = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name='파일', null=True, blank=True)
     file_size = models.BigIntegerField(default=0, verbose_name='파일 크기 (bytes)')
     mime_type = models.CharField(max_length=100, blank=True, verbose_name='MIME 타입')
 

@@ -413,21 +413,56 @@ def get_mock_comprehensive_analysis():
 
 
 # TODO: 실제 AI 모듈 연결 함수들
-def analyze_document_with_ai(document_id: str):
+def analyze_document_with_ai(pdf_file):
     """
-    생기부 문서 분석 (AI 모듈 호출)
+    생기부 PDF 문서 분석 (AI 모듈 호출)
 
     TODO: 실제 AI 모듈 연결
-    - 예시: result = ai_module.analyze_saenggibu(document_path)
-    - OCR 처리 후 분석 결과 반환
+    - PDF 파일을 받아서 OCR 처리
+    - 예시:
+      from ai_module import ocr_and_analyze_saenggibu
+      result = ocr_and_analyze_saenggibu(pdf_file)
+
+    - AI 모듈 함수 시그니처 예상:
+      def ocr_and_analyze_saenggibu(pdf_file_bytes_or_path):
+          # 1. PDF OCR 처리
+          # 2. 텍스트 추출
+          # 3. 생기부 분석
+          # 4. 결과 반환
+          return {
+              "강점요약": {...},
+              "약점요약": {...},
+              ...
+          }
 
     Args:
-        document_id: Document 모델의 ID
+        pdf_file: Django UploadedFile 객체 또는 파일 경로
+                 - pdf_file.read() 로 바이트 데이터 접근 가능
+                 - pdf_file.temporary_file_path() 로 임시 파일 경로 접근 가능
 
     Returns:
         dict: 생기부_분석 결과 (AI 모듈 output 형식)
     """
-    # 현재는 목업 데이터 반환
+    # TODO: AI 모듈 연결 시 아래 주석 해제하고 실제 함수 호출
+    # from ai_module import ocr_and_analyze_saenggibu
+    #
+    # # PDF 파일을 AI 모듈에 전달 (바이트 또는 경로)
+    # try:
+    #     # 방법 1: 바이트로 전달
+    #     pdf_bytes = pdf_file.read()
+    #     result = ocr_and_analyze_saenggibu(pdf_bytes)
+    #
+    #     # 방법 2: 임시 파일 경로로 전달 (파일이 큰 경우)
+    #     # file_path = pdf_file.temporary_file_path()
+    #     # result = ocr_and_analyze_saenggibu(file_path)
+    #
+    #     return result
+    # except Exception as e:
+    #     # AI 모듈 에러 처리
+    #     raise Exception(f"AI 모듈 분석 실패: {str(e)}")
+
+    # 현재는 목업 데이터 반환 (AI 모듈 없을 때)
+    # PDF 파일을 받긴 하지만 실제로 처리하지 않고 목업 반환
     return get_mock_saenggibu_analysis()
 
 
