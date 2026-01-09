@@ -53,12 +53,23 @@ class ConsultationReport(models.Model):
         help_text='성적, 활동 등 현재 상황'
     )
 
-    # 목표 대학 분석
+    # 목표 대학 분석 - 수시카드
     university_analysis = models.JSONField(
         default=dict,
         blank=True,
         verbose_name='목표 대학 분석',
-        help_text='지망 대학 합격 가능성 분석'
+        help_text='''
+        수시카드 추천 (AI 모듈의 종합분석.수시카드):
+        {
+            "경로A": {
+                "첫번째": {"학교이름": "", "과이름": "", "종합판단": ""},
+                "두번째": {...},
+                ...
+                "여섯번째": {...}
+            },
+            "경로B": {...}
+        }
+        '''
     )
 
     # 개선 사항 및 전략
@@ -70,12 +81,31 @@ class ConsultationReport(models.Model):
         help_text='구체적인 실행 항목 리스트'
     )
 
-    # AI 분석 결과
+    # AI 분석 결과 - 성적 분석 및 종합 분석
     ai_insights = models.JSONField(
         default=dict,
         blank=True,
         verbose_name='AI 인사이트',
-        help_text='AI 분석을 통한 추가 인사이트'
+        help_text='''
+        AI 모듈의 성적분석 + 종합분석 결과:
+        {
+            "성적분석": {
+                "내신": {
+                    "성적요약": {...},
+                    "학기별성적추이그래프": {...},
+                    "학기별등급표": {...}
+                }
+            },
+            "종합분석": {
+                "종합점수": {...},
+                "종합의견": {...},
+                "진로적합도": {...},
+                "긍정적요소": {...},
+                "개선필요사항": {...},
+                ...
+            }
+        }
+        '''
     )
 
     status = models.CharField(

@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from .models import Document, DocumentAnalysis
 from .serializers import (
@@ -11,6 +12,7 @@ from .serializers import (
     DocumentUploadSerializer,
     DocumentAnalysisSerializer
 )
+from apps.reports.ai_module import get_mock_saenggibu_analysis
 
 
 @extend_schema_view(
@@ -106,6 +108,152 @@ class DocumentViewSet(viewsets.ModelViewSet):
         return Response({
             'success': True,
             'data': serializer.data
+        })
+
+    @action(detail=True, methods=['get'], url_path='latest-analysis')
+    @extend_schema(
+        tags=['Documents'],
+        summary='문서의 최신 분석 결과 조회',
+        description='생기부 분석 결과를 프론트엔드에서 사용할 수 있는 형태로 반환'
+    )
+    def get_latest_analysis(self, request, pk=None):
+        """
+        문서의 최신 완료된 분석 결과 조회
+        - 프론트엔드가 사용할 생기부 분석 화면용 API
+        """
+        document = self.get_object()
+        latest_analysis = document.analyses.filter(
+            status='COMPLETED'
+        ).order_by('-analysis_version').first()
+
+        if not latest_analysis:
+            return Response({
+                'success': False,
+                'message': '완료된 분석 결과가 없습니다.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({
+            'success': True,
+            'data': {
+                'analysis_id': str(latest_analysis.id),
+                'analysis_version': latest_analysis.analysis_version,
+                'completed_at': latest_analysis.completed_at,
+                '생기부_분석': latest_analysis.analysis_result
+            }
+        })
+
+    @action(detail=True, methods=['patch'], url_path='update-analysis')
+    @extend_schema(
+        tags=['Documents'],
+        summary='생기부 분석 결과 수정 (컨설턴트용)',
+        description='컨설턴트가 AI 분석 결과를 검토 후 수정할 수 있는 API'
+    )
+    def update_analysis_result(self, request, pk=None):
+        """
+        생기부 분석 결과 수정
+
+        PATCH /api/v1/documents/{document_id}/update-analysis/
+
+        - 최신 완료된 분석 결과를 수정
+        - 전체 또는 일부 필드만 수정 가능
+        """
+        document = self.get_object()
+        latest_analysis = document.analyses.filter(
+            status='COMPLETED'
+        ).order_by('-analysis_version').first()
+
+        if not latest_analysis:
+            return Response({
+                'success': False,
+                'message': '수정할 분석 결과가 없습니다.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        # 기존 분석 결과와 병합
+        updated_data = request.data.get('생기부_분석', {})
+        if not updated_data:
+            return Response({
+                'success': False,
+                'error': '생기부_분석 필드가 필요합니다.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Deep merge: 기존 데이터와 새 데이터 병합
+        from copy import deepcopy
+        merged_result = deepcopy(latest_analysis.analysis_result)
+
+        def deep_update(source, updates):
+            """중첩된 dict를 재귀적으로 업데이트"""
+            for key, value in updates.items():
+                if isinstance(value, dict) and key in source and isinstance(source[key], dict):
+                    deep_update(source[key], value)
+                else:
+                    source[key] = value
+
+        deep_update(merged_result, updated_data)
+
+        # 새 버전으로 저장
+        new_analysis = DocumentAnalysis.objects.create(
+            document=document,
+            student=document.student,
+            status='COMPLETED',
+            analysis_result=merged_result,
+            started_at=latest_analysis.started_at,
+            completed_at=timezone.now()
+        )
+
+        return Response({
+            'success': True,
+            'message': '분석 결과가 수정되었습니다.',
+            'data': {
+                'analysis_id': str(new_analysis.id),
+                'analysis_version': new_analysis.analysis_version,
+                'updated_fields': list(updated_data.keys())
+            }
+        })
+
+    @action(detail=True, methods=['post'], url_path='generate-mock-analysis')
+    @extend_schema(
+        tags=['Documents'],
+        summary='생기부 목업 분석 생성 (테스트용)',
+        description='AI 모듈 연결 전 프론트엔드 개발을 위한 목업 데이터 생성'
+    )
+    def generate_mock_analysis(self, request, pk=None):
+        """
+        생기부 목업 분석 데이터 생성 (테스트용)
+
+        POST /api/v1/documents/{document_id}/generate-mock-analysis/
+
+        TODO: 실제 AI 모듈 연결 후 이 엔드포인트는 제거
+        """
+        document = self.get_object()
+
+        # 기존 미완료 분석 삭제 또는 완료 처리
+        document.analyses.filter(status__in=['PENDING', 'PROCESSING']).delete()
+
+        # 목업 분석 데이터 생성
+        mock_analysis = get_mock_saenggibu_analysis()
+
+        # DocumentAnalysis 생성
+        analysis = DocumentAnalysis.objects.create(
+            document=document,
+            student=document.student,
+            status='COMPLETED',
+            analysis_result=mock_analysis,
+            started_at=timezone.now(),
+            completed_at=timezone.now()
+        )
+
+        # 문서 상태 업데이트
+        document.status = 'COMPLETED'
+        document.save()
+
+        return Response({
+            'success': True,
+            'message': '목업 생기부 분석 데이터가 생성되었습니다.',
+            'data': {
+                'document_id': str(document.id),
+                'analysis_id': str(analysis.id),
+                'status': analysis.status
+            }
         })
 
 

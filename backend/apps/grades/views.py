@@ -179,6 +179,48 @@ class GradeViewSet(viewsets.ModelViewSet):
             }
         })
 
+    @action(detail=False, methods=['get'], url_path='student-grade-analysis')
+    def student_grade_analysis(self, request):
+        """
+        학생 성적 분석 결과 조회 (프론트엔드용)
+
+        GET /api/v1/grades/student-grade-analysis/?student_id=xxx
+
+        - AI 모듈의 성적분석 결과를 반환
+        - 현재는 해당 학생의 리포트에서 ai_insights.성적분석 부분을 추출
+        """
+        student_id = request.query_params.get('student_id')
+        if not student_id:
+            return Response({
+                'success': False,
+                'error': 'student_id parameter is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # TODO: AI 모듈 연결
+        # 현재는 ConsultationReport의 ai_insights에서 성적분석 부분을 추출
+        from apps.reports.models import ConsultationReport
+
+        latest_report = ConsultationReport.objects.filter(
+            student_id=student_id,
+            status__in=['COMPLETED', 'SENT']
+        ).order_by('-created_at').first()
+
+        if not latest_report or not latest_report.ai_insights.get('성적분석'):
+            return Response({
+                'success': False,
+                'message': '성적 분석 결과가 없습니다.'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({
+            'success': True,
+            'data': {
+                'student_id': student_id,
+                'report_id': str(latest_report.id),
+                'created_at': latest_report.created_at,
+                '성적분석': latest_report.ai_insights.get('성적분석', {})
+            }
+        })
+
     @action(detail=False, methods=['post'], url_path='convert-for-university')
     def convert_for_university(self, request):
         """
