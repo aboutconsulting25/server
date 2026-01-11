@@ -1,0 +1,6 @@
+requests
+pdf2image
+Pillow
+pandas
+numpy
+python-dotenv
