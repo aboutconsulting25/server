@@ -1,0 +1,37 @@
+ai/
+├── ocr/ # 🔍 OCR 관련 (입력 계층)
+│ ├── pdf_to_image.py
+│ ├── ocr_client.py # Naver OCR / API 호출
+│ ├── text_extractor.py # field / table / 좌표 추출
+│ └── table_detector.py # 표 존재 여부 / 기본 구조
+│
+├── parsing/ 
+│ ├── table_classifier.py
+│ ├── attendance_parser.py
+│ ├── volunteer_parser.py
+│ ├── grade_parser.py
+│ ├── sebuneung_parser.py
+│ ├── overall_opinion_parser.py
+│ └── common_parser.py
+│
+├── analysis/ # 🧠 AI 분석 계층 (LLM 중심)
+│ ├── prompts/
+│
+├── pipeline/ # 🔁 전체 흐름 제어 (오케스트레이션)
+│ ├── ocr_pipeline.py
+│ ├── parsing_pipeline.py
+│ ├── analysis_pipeline.py
+│ ├── full_pipeline.py
+│ └── __init__.py
+│
+├── schemas/ # 📦 입출력 계약 (JSON 구조)
+│
+├── utils/ # 🛠 공용 유틸
+│ ├── text_utils.py
+│ ├── table_utils.py
+│ ├── constants.py
+│ └── __init__.py
+│
+└── README.md # AI 파트 설명 (Git용)
+
+
