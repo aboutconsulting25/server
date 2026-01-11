@@ -28,9 +28,8 @@
 - 페이지 → 테이블 → 텍스트 구조 유지
 - 이후 LLM 분석, 리포트 생성, DB 저장에 바로 사용 가능
 
----
 
-## 📂 프로젝트 구조
+📂 프로젝트 구조
 ai_module/
 ├──ai/
 │ ├── ocr/ 
@@ -71,6 +70,7 @@ ai_module/
 │ └── README.md 
 └── scripts/
   └── run_life_record_ocr.py # ✅전체 파이프라인 실행 파일 
+
 
 
 
