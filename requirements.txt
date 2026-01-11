@@ -1,0 +1,11 @@
+# HTTP / API
+requests
+
+# OCR PDF 처리
+pdf2image
+
+# Data handling
+pandas
+
+# Environment variables
+python-dotenv
