@@ -1,7 +1,7 @@
 # ai/pipeline/ocr_pipeline.py
 
-from ai.ocr.pdf_to_image import pdf_to_images
-from ai.ocr.ocr_clients import process_multiple_images
+from ai_module.ai.ocr.pdf_to_image import pdf_to_images
+from ai_module.ai.ocr.ocr_clients import process_multiple_images
 
 
 def run_ocr_pipeline(pdf_path, ocr_api_url, ocr_secret_key):

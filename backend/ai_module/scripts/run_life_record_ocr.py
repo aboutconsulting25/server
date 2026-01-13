@@ -2,7 +2,7 @@ import os
 import json
 from dotenv import load_dotenv
 
-from ai.pipeline import run_full_pipeline
+from ai_module.ai.pipeline import run_full_pipeline
 
 
 def main():

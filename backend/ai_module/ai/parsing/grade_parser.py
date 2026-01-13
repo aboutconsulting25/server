@@ -1,8 +1,8 @@
 import re
 from collections import defaultdict
 
-from ai.parsing.table_classifier import is_grade_table
-from ai.utils.table_utils import raw_table_to_matrix
+from ai_module.ai.parsing.table_classifier import is_grade_table
+from ai_module.ai.utils.table_utils import raw_table_to_matrix
 
 
 def classify_grade_table(raw_table):

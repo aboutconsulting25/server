@@ -1,6 +1,6 @@
 
-from ai.ocr.text_extractor import extract_page_texts_with_position, extract_table_text, get_table_top_y
-from ai.parsing.table_classifier import is_sebuneung_table, is_overall_opinion_table
+from ai_module.ai.ocr.text_extractor import extract_page_texts_with_position, extract_table_text, get_table_top_y
+from ai_module.ai.parsing.table_classifier import is_sebuneung_table, is_overall_opinion_table
 
 
 TABLE_TITLE_CANDIDATES = [

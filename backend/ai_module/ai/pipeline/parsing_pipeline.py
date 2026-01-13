@@ -1,20 +1,20 @@
 # ai/pipeline/parsing_pipeline.py
 
-from ai.ocr.table_detector import extract_tables_with_fixed_title
+from ai_module.ai.ocr.table_detector import extract_tables_with_fixed_title
 
-from ai.parsing.attendance_parser import extract_attendance_summary_from_ocr
-from ai.parsing.volunteer_parser import extract_volunteer_summary_from_tables
-from ai.parsing.grade_parser import (
+from ai_module.ai.parsing.attendance_parser import extract_attendance_summary_from_ocr
+from ai_module.ai.parsing.volunteer_parser import extract_volunteer_summary_from_tables
+from ai_module.ai.parsing.grade_parser import (
     extract_grade_records_from_tables,
     build_nested_life_record_json
 )
-from ai.parsing.sebuneung_parser import parse_sebuneung
-from ai.parsing.overall_opinion_parser import parse_overall_opinion
-from ai.parsing.common_parser import (
+from ai_module.ai.parsing.sebuneung_parser import parse_sebuneung
+from ai_module.ai.parsing.overall_opinion_parser import parse_overall_opinion
+from ai_module.ai.parsing.common_parser import (
     remove_last_table_each_page,
     merge_tables_by_title
 )
-from ai.parsing.sebuneung_parser import normalize_subject
+from ai_module.ai.parsing.sebuneung_parser import normalize_subject
 
 
 def run_parsing_pipeline(ocr_result):

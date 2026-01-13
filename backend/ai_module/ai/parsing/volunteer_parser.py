@@ -1,5 +1,5 @@
 import re
-from ai.utils.table_utils import raw_table_to_matrix
+from ai_module.ai.utils.table_utils import raw_table_to_matrix
 
 def extract_volunteer_hours_from_table(raw_table):
     table = raw_table_to_matrix(raw_table)

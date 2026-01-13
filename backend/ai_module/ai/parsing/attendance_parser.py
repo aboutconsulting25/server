@@ -1,5 +1,5 @@
 import pandas as pd
-from ai.parsing.table_classifier import is_attendance_table
+from ai_module.ai.parsing.table_classifier import is_attendance_table
 
 
 def make_attendance_summary_json(numeric_df):

@@ -80,9 +80,9 @@ class DocumentViewSet(viewsets.ModelViewSet):
         document.status = 'PROCESSING'
         document.save()
 
-        # TODO: Celery 태스크 실행
-        # from apps.documents.tasks import process_document_analysis
-        # process_document_analysis.delay(str(analysis.id))
+        # Celery 태스크 실행
+        from apps.documents.tasks import process_document_ocr
+        process_document_ocr.delay(str(analysis.id))
 
         return Response({
             'success': True,

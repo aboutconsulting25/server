@@ -27,3 +27,9 @@ django-cors-headers==4.3.1
 # Utilities
 python-dotenv==1.0.0
 Pillow==10.1.0
+
+# AI Module Dependencies
+pdf2image==1.16.3
+pandas==2.1.4
+numpy==1.26.2
+requests==2.31.0

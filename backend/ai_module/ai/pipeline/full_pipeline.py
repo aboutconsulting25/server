@@ -1,7 +1,7 @@
 # ai/pipeline/full_pipeline.py
 
-from ai.pipeline.ocr_pipeline import run_ocr_pipeline
-from ai.pipeline.parsing_pipeline import run_parsing_pipeline
+from ai_module.ai.pipeline.ocr_pipeline import run_ocr_pipeline
+from ai_module.ai.pipeline.parsing_pipeline import run_parsing_pipeline
 
 
 def run_full_pipeline(
