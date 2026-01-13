@@ -16,18 +16,18 @@ from .university_converters import GachonConverter, UniversityConverter
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Grades']),
-    retrieve=extend_schema(tags=['Grades']),
-    create=extend_schema(tags=['Grades']),
-    update=extend_schema(tags=['Grades']),
-    partial_update=extend_schema(tags=['Grades']),
-    destroy=extend_schema(tags=['Grades']),
-    subject_grades=extend_schema(tags=['Grades']),
-    add_subject_grade=extend_schema(tags=['Grades']),
-    convert_grade=extend_schema(tags=['Grades']),
-    student_grade_summary=extend_schema(tags=['Grades']),
-    convert_for_university=extend_schema(tags=['Grades']),
-    calculate_gachon_gpa=extend_schema(tags=['Grades']),
+    list=extend_schema(tags=['Grades'], exclude=True),
+    retrieve=extend_schema(tags=['Grades'], exclude=True),
+    create=extend_schema(tags=['Grades'], exclude=True),
+    update=extend_schema(tags=['Grades'], exclude=True),
+    partial_update=extend_schema(tags=['Grades'], exclude=True),
+    destroy=extend_schema(tags=['Grades'], exclude=True),
+    subject_grades=extend_schema(tags=['Grades'], exclude=True),
+    add_subject_grade=extend_schema(tags=['Grades'], exclude=True),
+    convert_grade=extend_schema(tags=['Grades'], exclude=True),
+    student_grade_summary=extend_schema(tags=['Grades'], exclude=True),
+    convert_for_university=extend_schema(tags=['Grades'], exclude=True),
+    calculate_gachon_gpa=extend_schema(tags=['Grades'], exclude=True),
 )
 class GradeViewSet(viewsets.ModelViewSet):
     """성적 ViewSet"""
@@ -393,12 +393,12 @@ class GradeViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Grades']),
-    retrieve=extend_schema(tags=['Grades']),
-    create=extend_schema(tags=['Grades']),
-    update=extend_schema(tags=['Grades']),
-    partial_update=extend_schema(tags=['Grades']),
-    destroy=extend_schema(tags=['Grades']),
+    list=extend_schema(tags=['Grades'], exclude=True),
+    retrieve=extend_schema(tags=['Grades'], exclude=True),
+    create=extend_schema(tags=['Grades'], exclude=True),
+    update=extend_schema(tags=['Grades'], exclude=True),
+    partial_update=extend_schema(tags=['Grades'], exclude=True),
+    destroy=extend_schema(tags=['Grades'], exclude=True),
 )
 class SubjectGradeViewSet(viewsets.ModelViewSet):
     """과목별 성적 ViewSet"""

@@ -13,13 +13,13 @@ from .serializers import (
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Consultants']),
-    retrieve=extend_schema(tags=['Consultants']),
-    create=extend_schema(tags=['Consultants']),
-    update=extend_schema(tags=['Consultants']),
-    partial_update=extend_schema(tags=['Consultants']),
-    destroy=extend_schema(tags=['Consultants']),
-    students=extend_schema(tags=['Consultants']),
+    list=extend_schema(tags=['Consultants'], exclude=True),
+    retrieve=extend_schema(tags=['Consultants'], exclude=True),
+    create=extend_schema(tags=['Consultants'], exclude=True),
+    update=extend_schema(tags=['Consultants'], exclude=True),
+    partial_update=extend_schema(tags=['Consultants'], exclude=True),
+    destroy=extend_schema(tags=['Consultants'], exclude=True),
+    students=extend_schema(tags=['Consultants'], exclude=True),
 )
 class ConsultantViewSet(viewsets.ModelViewSet):
     """컨설턴트 ViewSet"""
@@ -57,6 +57,7 @@ class ConsultantViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=['get'])
+    @extend_schema(exclude=True)
     def workload(self, request, pk=None):
         """컨설턴트 업무량 조회"""
         consultant = self.get_object()

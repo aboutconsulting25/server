@@ -13,12 +13,12 @@ from .serializers import (
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Schools']),
-    retrieve=extend_schema(tags=['Schools']),
-    create=extend_schema(tags=['Schools']),
-    update=extend_schema(tags=['Schools']),
-    partial_update=extend_schema(tags=['Schools']),
-    destroy=extend_schema(tags=['Schools']),
+    list=extend_schema(tags=['Schools'], exclude=True),
+    retrieve=extend_schema(tags=['Schools'], exclude=True),
+    create=extend_schema(tags=['Schools'], exclude=True),
+    update=extend_schema(tags=['Schools'], exclude=True),
+    partial_update=extend_schema(tags=['Schools'], exclude=True),
+    destroy=extend_schema(tags=['Schools'], exclude=True),
 )
 class HighSchoolViewSet(viewsets.ModelViewSet):
     """고등학교 ViewSet"""
@@ -37,13 +37,13 @@ class HighSchoolViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Schools']),
-    retrieve=extend_schema(tags=['Schools']),
-    create=extend_schema(tags=['Schools']),
-    update=extend_schema(tags=['Schools']),
-    partial_update=extend_schema(tags=['Schools']),
-    destroy=extend_schema(tags=['Schools']),
-    admission_criteria=extend_schema(tags=['Schools']),
+    list=extend_schema(tags=['Schools'], exclude=True),
+    retrieve=extend_schema(tags=['Schools'], exclude=True),
+    create=extend_schema(tags=['Schools'], exclude=True),
+    update=extend_schema(tags=['Schools'], exclude=True),
+    partial_update=extend_schema(tags=['Schools'], exclude=True),
+    destroy=extend_schema(tags=['Schools'], exclude=True),
+    admission_criteria=extend_schema(tags=['Schools'], exclude=True),
 )
 class UniversityViewSet(viewsets.ModelViewSet):
     """대학 ViewSet"""
@@ -73,12 +73,12 @@ class UniversityViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Schools']),
-    retrieve=extend_schema(tags=['Schools']),
-    create=extend_schema(tags=['Schools']),
-    update=extend_schema(tags=['Schools']),
-    partial_update=extend_schema(tags=['Schools']),
-    destroy=extend_schema(tags=['Schools']),
+    list=extend_schema(tags=['Schools'], exclude=True),
+    retrieve=extend_schema(tags=['Schools'], exclude=True),
+    create=extend_schema(tags=['Schools'], exclude=True),
+    update=extend_schema(tags=['Schools'], exclude=True),
+    partial_update=extend_schema(tags=['Schools'], exclude=True),
+    destroy=extend_schema(tags=['Schools'], exclude=True),
 )
 class UniversityAdmissionCriteriaViewSet(viewsets.ModelViewSet):
     """대학 입학 기준 ViewSet"""

@@ -16,10 +16,10 @@ from apps.reports.ai_module import get_mock_saenggibu_analysis
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Documents'], summary='문서 목록 조회'),
-    retrieve=extend_schema(tags=['Documents'], summary='문서 상세 조회'),
-    create=extend_schema(tags=['Documents'], summary='문서 업로드'),
-    destroy=extend_schema(tags=['Documents'], summary='문서 삭제'),
+    list=extend_schema(tags=['Documents'], summary='문서 목록 조회', exclude=True),
+    retrieve=extend_schema(tags=['Documents'], summary='문서 상세 조회', exclude=True),
+    create=extend_schema(tags=['Documents'], summary='문서 업로드', exclude=True),
+    destroy=extend_schema(tags=['Documents'], summary='문서 삭제', exclude=True),
 )
 class DocumentViewSet(viewsets.ModelViewSet):
     """
@@ -52,7 +52,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
     @extend_schema(
         tags=['Documents'],
         summary='문서 분석 시작',
-        description='OCR 및 AI 분석을 시작합니다. Celery를 통해 비동기로 처리됩니다.'
+        description='OCR 및 AI 분석을 시작합니다. Celery를 통해 비동기로 처리됩니다.',
+        exclude=True
     )
     def start_analysis(self, request, pk=None):
         """
@@ -97,7 +98,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='analyses')
     @extend_schema(
         tags=['Documents'],
-        summary='문서의 모든 분석 이력 조회'
+        summary='문서의 모든 분석 이력 조회',
+        exclude=True
     )
     def get_analyses(self, request, pk=None):
         """문서의 모든 분석 이력 조회"""
@@ -146,7 +148,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
     @extend_schema(
         tags=['Documents'],
         summary='생기부 분석 결과 수정 (컨설턴트용)',
-        description='컨설턴트가 AI 분석 결과를 검토 후 수정할 수 있는 API'
+        description='컨설턴트가 AI 분석 결과를 검토 후 수정할 수 있는 API',
+        exclude=True
     )
     def update_analysis_result(self, request, pk=None):
         """
@@ -214,7 +217,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
     @extend_schema(
         tags=['Documents'],
         summary='생기부 목업 분석 생성 (테스트용)',
-        description='AI 모듈 연결 전 프론트엔드 개발을 위한 목업 데이터 생성'
+        description='AI 모듈 연결 전 프론트엔드 개발을 위한 목업 데이터 생성',
+        exclude=True
     )
     def generate_mock_analysis(self, request, pk=None):
         """
@@ -258,8 +262,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Documents'], summary='분석 이력 목록'),
-    retrieve=extend_schema(tags=['Documents'], summary='분석 상세 조회'),
+    list=extend_schema(tags=['Documents'], summary='분석 이력 목록', exclude=True),
+    retrieve=extend_schema(tags=['Documents'], summary='분석 상세 조회', exclude=True),
 )
 class DocumentAnalysisViewSet(viewsets.ReadOnlyModelViewSet):
     """

@@ -21,13 +21,13 @@ from .ai_module import (
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Reports']),
-    retrieve=extend_schema(tags=['Reports']),
-    create=extend_schema(tags=['Reports']),
-    update=extend_schema(tags=['Reports']),
-    partial_update=extend_schema(tags=['Reports']),
-    destroy=extend_schema(tags=['Reports']),
-    send=extend_schema(tags=['Reports']),
+    list=extend_schema(tags=['Reports'], exclude=True),
+    retrieve=extend_schema(tags=['Reports'], exclude=True),
+    create=extend_schema(tags=['Reports'], exclude=True),
+    update=extend_schema(tags=['Reports'], exclude=True),
+    partial_update=extend_schema(tags=['Reports'], exclude=True),
+    destroy=extend_schema(tags=['Reports'], exclude=True),
+    send=extend_schema(tags=['Reports'], exclude=True),
 )
 class ConsultationReportViewSet(viewsets.ModelViewSet):
     """컨설팅 리포트 ViewSet"""
@@ -47,6 +47,7 @@ class ConsultationReportViewSet(viewsets.ModelViewSet):
         return ConsultationReportSerializer
 
     @action(detail=True, methods=['post'])
+    @extend_schema(exclude=True)
     def send_report(self, request, pk=None):
         """리포트 전송"""
         report = self.get_object()
@@ -70,6 +71,7 @@ class ConsultationReportViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=True, methods=['post'])
+    @extend_schema(exclude=True)
     def generate_ai_insights(self, request, pk=None):
         """AI 인사이트 생성"""
         report = self.get_object()
@@ -85,6 +87,7 @@ class ConsultationReportViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=False, methods=['get'])
+    @extend_schema(exclude=True)
     def student_reports(self, request):
         """특정 학생의 모든 리포트 조회"""
         student_id = request.query_params.get('student_id')
@@ -140,7 +143,8 @@ class ConsultationReportViewSet(viewsets.ModelViewSet):
     @extend_schema(
         tags=['Reports'],
         summary='성적 분석 결과 수정 (컨설턴트용)',
-        description='컨설턴트가 성적 분석 결과를 검토 후 수정'
+        description='컨설턴트가 성적 분석 결과를 검토 후 수정',
+        exclude=True
     )
     def update_grade_analysis(self, request, pk=None):
         """
@@ -188,7 +192,8 @@ class ConsultationReportViewSet(viewsets.ModelViewSet):
     @extend_schema(
         tags=['Reports'],
         summary='종합 분석 결과 수정 (컨설턴트용)',
-        description='컨설턴트가 종합 분석 결과를 검토 후 수정'
+        description='컨설턴트가 종합 분석 결과를 검토 후 수정',
+        exclude=True
     )
     def update_comprehensive_analysis(self, request, pk=None):
         """
@@ -241,7 +246,8 @@ class ConsultationReportViewSet(viewsets.ModelViewSet):
     @extend_schema(
         tags=['Reports'],
         summary='목업 분석 데이터 생성 (테스트용)',
-        description='AI 모듈 연결 전 프론트엔드 개발을 위한 목업 데이터 생성'
+        description='AI 모듈 연결 전 프론트엔드 개발을 위한 목업 데이터 생성',
+        exclude=True
     )
     def generate_mock_analysis(self, request, pk=None):
         """
@@ -277,14 +283,14 @@ class ConsultationReportViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Reports']),
-    retrieve=extend_schema(tags=['Reports']),
-    create=extend_schema(tags=['Reports']),
-    update=extend_schema(tags=['Reports']),
-    partial_update=extend_schema(tags=['Reports']),
-    destroy=extend_schema(tags=['Reports']),
-    upcoming_sessions=extend_schema(tags=['Reports']),
-    student_sessions=extend_schema(tags=['Reports']),
+    list=extend_schema(tags=['Reports'], exclude=True),
+    retrieve=extend_schema(tags=['Reports'], exclude=True),
+    create=extend_schema(tags=['Reports'], exclude=True),
+    update=extend_schema(tags=['Reports'], exclude=True),
+    partial_update=extend_schema(tags=['Reports'], exclude=True),
+    destroy=extend_schema(tags=['Reports'], exclude=True),
+    upcoming_sessions=extend_schema(tags=['Reports'], exclude=True),
+    student_sessions=extend_schema(tags=['Reports'], exclude=True),
 )
 class ConsultationSessionViewSet(viewsets.ModelViewSet):
     """상담 세션 ViewSet"""

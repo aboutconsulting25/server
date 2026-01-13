@@ -14,16 +14,16 @@ from .serializers import (
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Students']),
-    retrieve=extend_schema(tags=['Students']),
-    create=extend_schema(tags=['Students']),
-    update=extend_schema(tags=['Students']),
-    partial_update=extend_schema(tags=['Students']),
-    destroy=extend_schema(tags=['Students']),
-    desired_universities=extend_schema(tags=['Students']),
-    add_desired_university=extend_schema(tags=['Students']),
-    grades=extend_schema(tags=['Students']),
-    documents=extend_schema(tags=['Students']),
+    list=extend_schema(tags=['Students'], exclude=True),
+    retrieve=extend_schema(tags=['Students'], exclude=True),
+    create=extend_schema(tags=['Students'], exclude=True),
+    update=extend_schema(tags=['Students'], exclude=True),
+    partial_update=extend_schema(tags=['Students'], exclude=True),
+    destroy=extend_schema(tags=['Students'], exclude=True),
+    desired_universities=extend_schema(tags=['Students'], exclude=True),
+    add_desired_university=extend_schema(tags=['Students'], exclude=True),
+    grades=extend_schema(tags=['Students'], exclude=True),
+    documents=extend_schema(tags=['Students'], exclude=True),
 )
 class StudentViewSet(viewsets.ModelViewSet):
     """학생 ViewSet"""
@@ -102,12 +102,12 @@ class StudentViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema_view(
-    list=extend_schema(tags=['Students']),
-    retrieve=extend_schema(tags=['Students']),
-    create=extend_schema(tags=['Students']),
-    update=extend_schema(tags=['Students']),
-    partial_update=extend_schema(tags=['Students']),
-    destroy=extend_schema(tags=['Students']),
+    list=extend_schema(tags=['Students'], exclude=True),
+    retrieve=extend_schema(tags=['Students'], exclude=True),
+    create=extend_schema(tags=['Students'], exclude=True),
+    update=extend_schema(tags=['Students'], exclude=True),
+    partial_update=extend_schema(tags=['Students'], exclude=True),
+    destroy=extend_schema(tags=['Students'], exclude=True),
 )
 class StudentDesiredUniversityViewSet(viewsets.ModelViewSet):
     """학생 지망 대학 ViewSet"""
