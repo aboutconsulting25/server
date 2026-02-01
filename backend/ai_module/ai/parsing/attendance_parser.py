@@ -62,7 +62,7 @@ def extract_attendance_summary_from_ocr(ocr_result):
                 except:
                     return 0
 
-            numeric_df = data_df.applymap(to_int)
+            numeric_df = data_df.apply(lambda col: col.map(to_int))
             return make_attendance_summary_json(numeric_df)
 
     return {}  # 출결표 없음
