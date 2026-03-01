@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from datetime import timedelta
 import environ
@@ -9,6 +10,11 @@ env = environ.Env(DEBUG=(bool, False))
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+# AI 모듈 Python 경로 등록 (backend/ai_module/ → from ai.xxx import ... 가능)
+_AI_MODULE_PATH = str(BASE_DIR / 'ai_module')
+if _AI_MODULE_PATH not in sys.path:
+    sys.path.insert(0, _AI_MODULE_PATH)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')

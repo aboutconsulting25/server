@@ -3,7 +3,7 @@ from openai import OpenAI
 import os
 
 # ✅ 여기서만 모델 결정
-DEFAULT_MODEL = "gpt-5.2"
+DEFAULT_MODEL = "gpt-4.1-mini"
 
 _client = None
 

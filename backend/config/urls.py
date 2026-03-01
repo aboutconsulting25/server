@@ -7,7 +7,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from apps.students.mvp_views import register_saenggibu_onestop
+from apps.students.mvp_views import register_saenggibu_onestop, analyze_pdf
 
 urlpatterns = [
     # Admin
@@ -20,6 +20,9 @@ urlpatterns = [
 
     # MVP 원포인트 API
     path('api/v1/mvp/register-saenggibu/', register_saenggibu_onestop, name='mvp-register-saenggibu'),
+
+    # 생기부 PDF AI 분석 (OCR → 파싱 → LLM → DB 저장)
+    path('api/v1/mvp/analyze-pdf/', analyze_pdf, name='mvp-analyze-pdf'),
 
     # API v1
     # 로그인 API 비활성화 (MVP용) - 추후 재활성화 예정
