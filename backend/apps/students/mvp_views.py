@@ -4,6 +4,9 @@ MVP 전용 원포인트 API
 1차 MVP를 위한 통합 엔드포인트
 - 생기부 등록부터 분석까지 한 번에 처리
 """
+import json
+import logging
+
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -21,6 +24,8 @@ from apps.reports.ai_module import (
     get_mock_grade_analysis,
     get_mock_comprehensive_analysis
 )
+
+logger = logging.getLogger(__name__)
 
 
 # MVP 등록용 Serializer
@@ -245,3 +250,276 @@ def register_saenggibu_onestop(request):
             'success': False,
             'error': f'처리 중 오류가 발생했습니다: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================
+# 생기부 PDF AI 분석 엔드포인트 (실제 AI 파이프라인 연결)
+# ============================================================
+
+class AnalyzePdfSerializer(serializers.Serializer):
+    """PDF 분석 요청 Serializer"""
+    file = serializers.FileField(
+        required=True,
+        write_only=True,
+        use_url=False,
+        help_text='생기부 PDF 파일 (최대 50MB)'
+    )
+    student_name = serializers.CharField(
+        required=True,
+        write_only=True,
+        help_text='학생 이름 (LLM 프롬프트에 사용)'
+    )
+    grade = serializers.CharField(
+        required=True,
+        write_only=True,
+        help_text='학년 (예: "3학년")'
+    )
+    semester = serializers.CharField(
+        required=True,
+        write_only=True,
+        help_text='학기 (예: "1학기")'
+    )
+    targets = serializers.CharField(
+        required=True,
+        write_only=True,
+        help_text=(
+            '희망 대학/학과 JSON 배열. '
+            '예: [{"school": "서울대학교", "major": "컴퓨터공학부"}, '
+            '{"school": "연세대학교", "major": "전기전자공학부"}]'
+        )
+    )
+    major_track = serializers.ChoiceField(
+        required=False,
+        write_only=True,
+        choices=['HUMANITIES', 'SCIENCE', 'ART'],
+        default='SCIENCE',
+        help_text='계열 (HUMANITIES: 인문계, SCIENCE: 자연계, ART: 예체능). 기본값: SCIENCE'
+    )
+
+
+@extend_schema(
+    tags=['MVP'],
+    summary='생기부 PDF AI 분석 (실제 파이프라인)',
+    description='''
+PDF 생활기록부를 업로드하면 실제 AI 파이프라인으로 분석합니다.
+
+**처리 순서:**
+1. PDF → 이미지 변환
+2. Naver CLOVA OCR (표 인식 포함)
+3. 구조화 파싱 (출결 / 봉사 / 성적 / 세부능력 / 행동특성)
+4. OpenAI LLM 분석 (8가지 항목)
+5. DocumentAnalysis DB 저장
+6. 결과 반환
+
+**필수 환경변수 (.env):**
+- `NAVER_OCR_API_URL`: Naver CLOVA OCR API URL
+- `NAVER_OCR_SECRET_KEY`: Naver CLOVA OCR Secret Key
+- `OPENAI_API_KEY`: OpenAI API Key
+
+**분석 결과 항목:**
+- `grade_strength_weakness`: 성적 강점/약점 요약
+- `grade_in_depth_analysis`: 교과 성적 심층 분석
+- `life_record_strength_weakness`: 생활기록부 강점/약점
+- `life_record_diagnosis_overview`: 생활기록부 진단 개요
+- `academic_roadmap`: 진로적합성 강화 로드맵
+- `project_recommendations`: 심화 프로젝트 추천
+- `career_book_recommendations`: 진로 도서 추천
+- `parent_student_message`: 학부모 조언 & 학생 응원 메시지
+    ''',
+    request=AnalyzePdfSerializer,
+    examples=[
+        OpenApiExample(
+            '성공 응답',
+            value={
+                'success': True,
+                'message': 'AI 분석이 완료되었습니다.',
+                'data': {
+                    'student_id': 'uuid',
+                    'document_id': 'uuid',
+                    'analysis_id': 'uuid',
+                    'analysis_version': 1,
+                    'results': {
+                        'grade_strength_weakness': '{"강점": [...], "약점": [...]}',
+                        'grade_in_depth_analysis': '...',
+                    },
+                    'next_steps': {
+                        '분석_결과_조회': '/api/v1/documents/{document_id}/latest-analysis/'
+                    }
+                }
+            },
+            response_only=True,
+        )
+    ]
+)
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def analyze_pdf(request):
+    """
+    생기부 PDF AI 분석 엔드포인트
+
+    POST /api/v1/mvp/analyze-pdf/
+
+    실제 AI 파이프라인 (OCR → 파싱 → LLM 분석) 을 실행하고
+    결과를 DocumentAnalysis 테이블에 저장한다.
+    """
+    from apps.documents.ai_service import run_ai_pipeline
+
+    # ── 1. 입력 검증 ──────────────────────────────────────────
+    file = request.FILES.get('file')
+    student_name = request.data.get('student_name', '').strip()
+    grade = request.data.get('grade', '').strip()
+    semester = request.data.get('semester', '').strip()
+    targets_str = request.data.get('targets', '').strip()
+    major_track = request.data.get('major_track', 'SCIENCE')
+
+    missing = [
+        f for f, v in [
+            ('file', file),
+            ('student_name', student_name),
+            ('grade', grade),
+            ('semester', semester),
+            ('targets', targets_str),
+        ] if not v
+    ]
+    if missing:
+        return Response(
+            {'success': False, 'error': f'필수 필드 누락: {", ".join(missing)}'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if file.content_type != 'application/pdf':
+        return Response(
+            {'success': False, 'error': 'PDF 파일만 업로드 가능합니다.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if file.size > 50 * 1024 * 1024:
+        return Response(
+            {'success': False, 'error': 'PDF 파일 크기는 50MB를 초과할 수 없습니다.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        targets = json.loads(targets_str)
+        if not isinstance(targets, list) or len(targets) == 0:
+            raise ValueError('targets must be a non-empty array')
+        for t in targets:
+            if 'school' not in t or 'major' not in t:
+                raise ValueError('각 target은 school, major 키가 필요합니다.')
+    except (json.JSONDecodeError, ValueError) as e:
+        return Response(
+            {'success': False, 'error': f'targets 형식 오류: {e}'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # ── 2. DB 레코드 생성 (Student / Document / DocumentAnalysis) ──
+    try:
+        with transaction.atomic():
+            student_code = f"STU-{timezone.now().strftime('%Y%m%d%H%M%S%f')}"
+            student = Student.objects.create(
+                name=student_name,
+                student_code=student_code,
+                major_track=major_track,
+                desired_universities_text=targets,
+                grade='3',
+                status='ACTIVE',
+            )
+
+            document = Document.objects.create(
+                student=student,
+                document_type='생기부',
+                title=f"{student_name} 생활기록부",
+                file_size=file.size,
+                mime_type=file.content_type,
+                status='PROCESSING',
+            )
+
+            # 분석 버전: 같은 document의 최대 버전 + 1
+            latest_version = (
+                DocumentAnalysis.objects
+                .filter(document=document)
+                .order_by('-analysis_version')
+                .values_list('analysis_version', flat=True)
+                .first()
+            ) or 0
+            next_version = latest_version + 1
+
+            analysis = DocumentAnalysis.objects.create(
+                document=document,
+                student=student,
+                analysis_version=next_version,
+                status='PROCESSING',
+                started_at=timezone.now(),
+            )
+
+    except Exception as e:
+        logger.error(f"DB 레코드 생성 실패: {e}", exc_info=True)
+        return Response(
+            {'success': False, 'error': f'DB 저장 오류: {e}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    # ── 3. AI 파이프라인 실행 ──────────────────────────────────
+    student_info = {
+        'name': student_name,
+        'grade': grade,
+        'semester': semester,
+        'targets': targets,
+    }
+
+    try:
+        results = run_ai_pipeline(file, student_info)
+
+        # ── 4. 결과 DB 저장 ────────────────────────────────────
+        analysis.status = 'COMPLETED'
+        analysis.analysis_result = results
+        analysis.completed_at = timezone.now()
+        analysis.save(update_fields=['status', 'analysis_result', 'completed_at'])
+
+        document.status = 'COMPLETED'
+        document.save(update_fields=['status'])
+
+        return Response(
+            {
+                'success': True,
+                'message': 'AI 분석이 완료되었습니다.',
+                'data': {
+                    'student_id': str(student.id),
+                    'student_name': student.name,
+                    'document_id': str(document.id),
+                    'analysis_id': str(analysis.id),
+                    'analysis_version': analysis.analysis_version,
+                    'results': results,
+                    'next_steps': {
+                        '분석_결과_조회': f'/api/v1/documents/{document.id}/latest-analysis/',
+                    },
+                },
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    except EnvironmentError as e:
+        # 환경변수 미설정 → FAILED 처리
+        analysis.status = 'FAILED'
+        analysis.error_message = str(e)
+        analysis.save(update_fields=['status', 'error_message'])
+        document.status = 'FAILED'
+        document.save(update_fields=['status'])
+
+        return Response(
+            {'success': False, 'error': str(e)},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    except Exception as e:
+        analysis.status = 'FAILED'
+        analysis.error_message = str(e)
+        analysis.save(update_fields=['status', 'error_message'])
+        document.status = 'FAILED'
+        document.save(update_fields=['status'])
+
+        logger.error(f"AI 파이프라인 실패: {e}", exc_info=True)
+        return Response(
+            {'success': False, 'error': f'AI 분석 중 오류가 발생했습니다: {e}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
